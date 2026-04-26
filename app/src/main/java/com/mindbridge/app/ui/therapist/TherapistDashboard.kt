@@ -37,7 +37,11 @@ fun TherapistDashboard(
     val casi = MockRepository.getCasesForTherapist(user.id)
     val tuttiAppuntamenti = MockRepository.getAppointmentsForTherapist(user.id)
     val appuntamentiOggi = tuttiAppuntamenti.filter { it.dataOra.toLocalDate() == LocalDate.now() }
-    val prossimiAppuntamenti = tuttiAppuntamenti.filter { it.status == AppointmentStatus.CONFERMATO }
+    val prossimiAppuntamenti = tuttiAppuntamenti.filter { 
+        it.dataOra.toLocalDate() > LocalDate.now() && it.status == AppointmentStatus.CONFERMATO 
+    }
+    val conversazioni = MockRepository.conversazioni.filter { it.participantIds.contains(user.id) }
+    
     val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.ITALIAN)
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -78,7 +82,7 @@ fun TherapistDashboard(
                     "${casi.size}", Violet500, Modifier.weight(1f))
                 StatCard(Icons.Outlined.Today, "Oggi",
                     "${appuntamentiOggi.size}", Teal500, Modifier.weight(1f))
-                StatCard(Icons.Outlined.CalendarMonth, "Prossime",
+                StatCard(Icons.Outlined.CalendarMonth, "Agenda",
                     "${prossimiAppuntamenti.size}", Info, Modifier.weight(1f))
             }
         }
@@ -97,21 +101,10 @@ fun TherapistDashboard(
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("📅", style = MaterialTheme.typography.displayLarge)
-                            Spacer(Modifier.height(8.dp))
-                            Text("Nessun appuntamento oggi",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                    Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                        Text("Nessun appuntamento in programma per oggi", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -125,66 +118,57 @@ fun TherapistDashboard(
             }
         }
 
-        // Prossimi appuntamenti
-        if (tuttiAppuntamenti.isNotEmpty()) {
-            item {
-                Text(
-                    "Prossimi Appuntamenti",
-                    modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 12.dp),
-                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
-                )
-            }
-            items(prossimiAppuntamenti.take(5)) { app ->
-                AppointmentCard(
-                    app, isTherapist = true,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                )
-            }
-        }
-
-        // Accesso rapido Casi
+        // Prossime Chat (Novità)
         item {
-            Text(
-                "I tuoi Casi",
-                modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 12.dp),
-                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, top = 24.dp, bottom = 12.dp, end = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Chat Recenti", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            }
         }
 
-        items(casi) { caseItem ->
+        items(conversazioni.take(3)) { conv ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp)
-                    .clickable { onNavigateToChat(caseItem.id) },
-                shape = RoundedCornerShape(20.dp)
+                    .clickable { onNavigateToChat(conv.id) },
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Teal50)
             ) {
-                Row(
-                    modifier = Modifier.padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        modifier = Modifier.size(48.dp).clip(CircleShape)
-                            .background(Brush.linearGradient(listOf(Teal400, Teal600))),
+                        modifier = Modifier.size(40.dp).clip(CircleShape).background(Teal600),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            caseItem.titolo.take(2).uppercase(),
-                            color = Color.White, fontWeight = FontWeight.Bold
-                        )
+                        Icon(Icons.Default.Chat, null, tint = Color.White, modifier = Modifier.size(20.dp))
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(caseItem.titolo, fontWeight = FontWeight.SemiBold)
-                        Text(caseItem.tipo.name, style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(conv.title, fontWeight = FontWeight.SemiBold)
+                        Text("Ultimo messaggio...", style = MaterialTheme.typography.bodySmall, color = Teal800)
                     }
-                    Row {
-                        IconButton(onClick = { /* Naviga a chat del caso */ }) {
-                            Icon(Icons.Outlined.Chat, "Chat", tint = Teal600)
-                        }
-                    }
+                    Icon(Icons.Default.ChevronRight, null, tint = Teal600)
                 }
+            }
+        }
+
+        // Prossimi appuntamenti (Ridotto)
+        if (prossimiAppuntamenti.isNotEmpty()) {
+            item {
+                Text(
+                    "Prossimi giorni",
+                    modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 12.dp),
+                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
+                )
+            }
+            items(prossimiAppuntamenti.take(3)) { app ->
+                AppointmentCard(
+                    app, isTherapist = true,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
             }
         }
 
