@@ -95,9 +95,9 @@ fun AppointmentCard(
     modifier: Modifier = Modifier
 ) {
     val formatter = DateTimeFormatter.ofPattern("dd MMM · HH:mm", Locale.ITALIAN)
-    val statusColor = when (appointment.stato) {
+    val statusColor = when (appointment.status) {
         AppointmentStatus.CONFERMATO -> Success
-        AppointmentStatus.IN_ATTESA -> Warning
+        AppointmentStatus.RICHIESTA_MODIFICA -> Warning
         AppointmentStatus.ANNULLATO -> Error
         AppointmentStatus.COMPLETATO -> Warm400
     }
@@ -134,7 +134,7 @@ fun AppointmentCard(
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    if (isTherapist) appointment.nomePaziente else appointment.nomeTerapeuta,
+                    appointment.titolo,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -151,7 +151,7 @@ fun AppointmentCard(
                 color = statusColor.copy(alpha = 0.12f)
             ) {
                 Text(
-                    appointment.stato.name.lowercase().replaceFirstChar { it.uppercase() },
+                    appointment.status.name.lowercase().replaceFirstChar { it.uppercase() },
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                     color = statusColor,
                     style = MaterialTheme.typography.labelSmall,

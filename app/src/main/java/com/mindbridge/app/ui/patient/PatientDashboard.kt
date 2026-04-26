@@ -36,8 +36,9 @@ fun PatientDashboard(
     onNavigateToChat: (String) -> Unit
 ) {
     val moods = MockRepository.getMoodByPaziente(user.id)
-    val appointments = MockRepository.getAppuntamentiByUser(user.id)
-        .filter { it.stato == AppointmentStatus.CONFERMATO }
+    val appointments = MockRepository.appuntamenti
+        .filter { it.participantIds.contains(user.personId) }
+        .filter { it.status == AppointmentStatus.CONFERMATO }
         .sortedBy { it.dataOra }
     val exercises = MockRepository.getEserciziByPaziente(user.id)
     val todayMood = moods.lastOrNull()
@@ -145,13 +146,16 @@ fun PatientDashboard(
 
         // Chat con terapeuta
         if (user.terapeutaId != null) {
+            val conversation = MockRepository.conversazioni.find { 
+                it.participantIds.contains(user.id) && it.participantIds.contains(user.terapeutaId) 
+            }
             item {
                 Spacer(Modifier.height(16.dp))
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
-                        .clickable { onNavigateToChat(user.terapeutaId) },
+                        .clickable { conversation?.let { onNavigateToChat(it.id) } },
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = Teal50)
                 ) {

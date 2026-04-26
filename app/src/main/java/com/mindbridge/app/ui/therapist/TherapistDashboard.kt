@@ -34,12 +34,10 @@ fun TherapistDashboard(
     onNavigateToChat: (String) -> Unit,
     onNavigateToNotes: (String) -> Unit
 ) {
-    val pazienti = MockRepository.getPazientiByTerapeuta(user.id)
-    val appuntamentiOggi = MockRepository.getAppuntamentiByUser(user.id)
-        .filter { it.dataOra.toLocalDate() == LocalDate.now() }
-    val tuttiAppuntamenti = MockRepository.getAppuntamentiByUser(user.id)
-        .filter { it.stato == AppointmentStatus.CONFERMATO }
-        .sortedBy { it.dataOra }
+    val casi = MockRepository.getCasesForTherapist(user.id)
+    val tuttiAppuntamenti = MockRepository.getAppointmentsForTherapist(user.id)
+    val appuntamentiOggi = tuttiAppuntamenti.filter { it.dataOra.toLocalDate() == LocalDate.now() }
+    val prossimiAppuntamenti = tuttiAppuntamenti.filter { it.status == AppointmentStatus.CONFERMATO }
     val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.ITALIAN)
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -76,12 +74,12 @@ fun TherapistDashboard(
                     .offset(y = (-16).dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                StatCard(Icons.Outlined.People, "Pazienti",
-                    "${pazienti.size}", Violet500, Modifier.weight(1f))
+                StatCard(Icons.Outlined.People, "Casi",
+                    "${casi.size}", Violet500, Modifier.weight(1f))
                 StatCard(Icons.Outlined.Today, "Oggi",
                     "${appuntamentiOggi.size}", Teal500, Modifier.weight(1f))
                 StatCard(Icons.Outlined.CalendarMonth, "Prossime",
-                    "${tuttiAppuntamenti.size}", Info, Modifier.weight(1f))
+                    "${prossimiAppuntamenti.size}", Info, Modifier.weight(1f))
             }
         }
 
@@ -121,7 +119,7 @@ fun TherapistDashboard(
             items(appuntamentiOggi) { app ->
                 AppointmentCard(
                     appointment = app, isTherapist = true,
-                    onClick = { onNavigateToNotes(app.pazienteId) },
+                    onClick = { onNavigateToNotes(app.caseId) },
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
             }
@@ -136,7 +134,7 @@ fun TherapistDashboard(
                     style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
                 )
             }
-            items(tuttiAppuntamenti.take(5)) { app ->
+            items(prossimiAppuntamenti.take(5)) { app ->
                 AppointmentCard(
                     app, isTherapist = true,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -144,21 +142,21 @@ fun TherapistDashboard(
             }
         }
 
-        // Accesso rapido pazienti
+        // Accesso rapido Casi
         item {
             Text(
-                "I tuoi Pazienti",
+                "I tuoi Casi",
                 modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 12.dp),
                 style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
             )
         }
 
-        items(pazienti) { paziente ->
+        items(casi) { caseItem ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp)
-                    .clickable { onNavigateToChat(paziente.id) },
+                    .clickable { onNavigateToChat(caseItem.id) },
                 shape = RoundedCornerShape(20.dp)
             ) {
                 Row(
@@ -171,23 +169,19 @@ fun TherapistDashboard(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "${paziente.nome.first()}${paziente.cognome.first()}",
+                            caseItem.titolo.take(2).uppercase(),
                             color = Color.White, fontWeight = FontWeight.Bold
                         )
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("${paziente.nome} ${paziente.cognome}",
-                            fontWeight = FontWeight.SemiBold)
-                        Text(paziente.email, style = MaterialTheme.typography.bodySmall,
+                        Text(caseItem.titolo, fontWeight = FontWeight.SemiBold)
+                        Text(caseItem.tipo.name, style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Row {
-                        IconButton(onClick = { onNavigateToChat(paziente.id) }) {
+                        IconButton(onClick = { /* Naviga a chat del caso */ }) {
                             Icon(Icons.Outlined.Chat, "Chat", tint = Teal600)
-                        }
-                        IconButton(onClick = { onNavigateToNotes(paziente.id) }) {
-                            Icon(Icons.Outlined.NoteAlt, "Note", tint = Violet500)
                         }
                     }
                 }

@@ -24,6 +24,8 @@ fun NavGraph(
     currentUserId: String,
     onLoginSuccess: (String) -> Unit
 ) {
+    val currentUser = MockRepository.utenti.find { it.id == currentUserId }
+
     NavHost(
         navController = navController,
         startDestination = startDestination
@@ -56,7 +58,14 @@ fun NavGraph(
 
         // --- SEZIONI TERAPEUTA ---
         composable(Routes.TherapistDashboard.route) {
-            TherapistDashboard(currentUserId)
+            currentUser?.let { user ->
+                TherapistDashboard(
+                    user = user,
+                    onNavigateToPatients = { navController.navigate(Routes.Cases.route) },
+                    onNavigateToChat = { convId -> navController.navigate(Routes.Chat.createRoute(convId)) },
+                    onNavigateToNotes = { caseId -> navController.navigate(Routes.CaseDetail.createRoute(caseId)) }
+                )
+            }
         }
         
         composable(Routes.Cases.route) {
@@ -115,7 +124,15 @@ fun NavGraph(
 
         // --- PAZIENTE ---
         composable(Routes.PatientDashboard.route) {
-            PatientDashboard(currentUserId)
+            currentUser?.let { user ->
+                PatientDashboard(
+                    user = user,
+                    onNavigateToMood = { /* Implementare */ },
+                    onNavigateToExercises = { /* Implementare */ },
+                    onNavigateToAppointments = { /* Implementare */ },
+                    onNavigateToChat = { convId -> navController.navigate(Routes.Chat.createRoute(convId)) }
+                )
+            }
         }
     }
 }
