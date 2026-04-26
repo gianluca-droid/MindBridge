@@ -27,7 +27,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mindbridge.app.data.model.*
+import com.mindbridge.app.data.model.AppointmentStatus
 import com.mindbridge.app.ui.theme.*
+import com.mindbridge.app.ui.theme.Success
+import com.mindbridge.app.ui.theme.Warning
+import com.mindbridge.app.ui.theme.Error
+import com.mindbridge.app.ui.theme.Warm400
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
