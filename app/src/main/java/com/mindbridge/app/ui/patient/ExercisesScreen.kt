@@ -19,7 +19,7 @@ fun ExercisesScreen(user: User) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item { GradientHeader("I Miei Esercizi", "Assegnati dal tuo terapeuta") }
 
-        items(exercises) { exercise ->
+        items(items = exercises) { exercise ->
             ExerciseCard(
                 exercise = exercise,
                 onComplete = if (exercise.stato != com.mindbridge.app.data.model.ExerciseStatus.COMPLETATO) {

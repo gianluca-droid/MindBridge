@@ -24,4 +24,7 @@ sealed class Routes(val route: String) {
     object Chat : Routes("chat/{conversationId}") {
         fun createRoute(convId: String) = "chat/$convId"
     }
+
+    object MoodDiary : Routes("mood_diary")
+    object Exercises : Routes("exercises")
 }

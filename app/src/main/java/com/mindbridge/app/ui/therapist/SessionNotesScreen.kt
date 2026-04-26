@@ -3,9 +3,11 @@ package com.mindbridge.app.ui.therapist
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,136 +21,140 @@ import androidx.compose.ui.unit.dp
 import com.mindbridge.app.data.model.SessionNote
 import com.mindbridge.app.data.repository.MockRepository
 import com.mindbridge.app.ui.theme.*
-import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionNotesScreen(patientId: String) {
-    val paziente = MockRepository.utenti.find { it.id == patientId }
-    val noteEsistenti = MockRepository.noteSessione.filter { it.pazienteId == patientId }
+fun SessionNotesScreen(
+    caseId: String,
+    therapistId: String,
+    onBackClick: () -> Unit
+) {
+    val careCase = remember(caseId) { MockRepository.getCaseById(caseId) }
+    val noteEsistenti = remember(caseId) { MockRepository.getNotesForCase(caseId) }
+    
     var contenuto by remember { mutableStateOf("") }
-    var obiettivi by remember { mutableStateOf("") }
     var progressi by remember { mutableStateOf("") }
-    var prossimiPassi by remember { mutableStateOf("") }
+    var compiti by remember { mutableStateOf("") }
     var saved by remember { mutableStateOf(false) }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        // Header
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(Violet500, Violet600)))
-                    .padding(horizontal = 24.dp, vertical = 28.dp)
-            ) {
-                Column {
-                    Text("Note di Sessione", color = Color.White,
-                        style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold)
-                    if (paziente != null) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier.size(28.dp).clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.2f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("${paziente.nome.first()}", color = Color.White,
-                                    style = MaterialTheme.typography.labelMedium)
-                            }
-                            Spacer(Modifier.width(8.dp))
-                            Text("${paziente.nome} ${paziente.cognome}",
-                                color = Violet300, style = MaterialTheme.typography.bodyLarge)
-                        }
-                    }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Note di Sessione") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) }
                 }
-            }
+            )
         }
-
-        // Nuova nota
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                shape = RoundedCornerShape(24.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Nuova Nota", style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(16.dp))
-
-                    NoteField("Contenuto della sessione", contenuto, { contenuto = it }, 4)
-                    Spacer(Modifier.height(12.dp))
-                    NoteField("Obiettivi terapeutici", obiettivi, { obiettivi = it }, 2)
-                    Spacer(Modifier.height(12.dp))
-                    NoteField("Progressi osservati", progressi, { progressi = it }, 2)
-                    Spacer(Modifier.height(12.dp))
-                    NoteField("Prossimi passi", prossimiPassi, { prossimiPassi = it }, 2)
-
-                    Spacer(Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            MockRepository.noteSessione.add(
-                                SessionNote(
-                                    id = "n${System.currentTimeMillis()}", terapeutaId = "t1",
-                                    pazienteId = patientId, dataSessione = LocalDate.now(),
-                                    contenuto = contenuto, obiettivi = obiettivi,
-                                    progressi = progressi, prossimiPassi = prossimiPassi
-                                )
-                            )
-                            saved = true
-                        },
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Violet500),
-                        enabled = contenuto.isNotBlank()
-                    ) {
-                        Icon(Icons.Filled.Save, null, Modifier.size(20.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Salva Nota", fontWeight = FontWeight.SemiBold)
-                    }
-
-                    if (saved) {
-                        Spacer(Modifier.height(8.dp))
-                        Surface(color = Success.copy(alpha = 0.1f), shape = RoundedCornerShape(12.dp)) {
-                            Text("✅ Nota salvata!", modifier = Modifier.padding(12.dp),
-                                color = Success)
-                        }
-                    }
-                }
-            }
-        }
-
-        // Note precedenti
-        if (noteEsistenti.isNotEmpty()) {
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
+        ) {
+            // Header Info Caso
             item {
-                Text("Note Precedenti",
-                    modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 8.dp),
-                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Brush.verticalGradient(listOf(Violet500, Violet600)))
+                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                ) {
+                    Column {
+                        Text(careCase?.titolo ?: "Caso", color = Color.White,
+                            style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(careCase?.tipo?.name ?: "", color = Violet300, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
             }
-            noteEsistenti.forEach { nota ->
+
+            // Form Nuova Nota
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text("Nuova Nota", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(16.dp))
+
+                        NoteField("Contenuto della sessione", contenuto, { contenuto = it }, 4)
+                        Spacer(Modifier.height(12.dp))
+                        NoteField("Progressi e Osservazioni", progressi, { progressi = it }, 2)
+                        Spacer(Modifier.height(12.dp))
+                        NoteField("Compiti assegnati", compiti, { compiti = it }, 2)
+
+                        Spacer(Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                val nuovaNota = SessionNote(
+                                    id = "n${System.currentTimeMillis()}",
+                                    caseId = caseId,
+                                    terapeutaId = therapistId,
+                                    dataSessione = LocalDateTime.now(),
+                                    contenuto = contenuto,
+                                    progressi = progressi,
+                                    compiti = compiti
+                                )
+                                MockRepository.addNote(nuovaNota)
+                                saved = true
+                                contenuto = ""
+                                progressi = ""
+                                compiti = ""
+                            },
+                            modifier = Modifier.fillMaxWidth().height(50.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Violet500),
+                            enabled = contenuto.isNotBlank()
+                        ) {
+                            Icon(Icons.Filled.Save, null, Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Salva Nota", fontWeight = FontWeight.SemiBold)
+                        }
+
+                        if (saved) {
+                            Spacer(Modifier.height(8.dp))
+                            Surface(color = Success.copy(alpha = 0.1f), shape = RoundedCornerShape(12.dp)) {
+                                Text("✅ Nota salvata!", modifier = Modifier.padding(12.dp), color = Success)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Lista Note Precedenti
+            if (noteEsistenti.isNotEmpty()) {
                 item {
+                    Text("Note Precedenti",
+                        modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 8.dp),
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                }
+                items(noteEsistenti) { nota ->
                     Card(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("📅 ${nota.dataSessione}", fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "📅 ${nota.dataSessione.format(DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm"))}",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                             Spacer(Modifier.height(8.dp))
-                            Text(nota.contenuto, style = MaterialTheme.typography.bodyMedium)
+                            Text(nota.contenuto, style = MaterialTheme.typography.bodyLarge)
                             if (nota.progressi.isNotBlank()) {
-                                Spacer(Modifier.height(6.dp))
-                                Text("📈 ${nota.progressi}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Success)
+                                Spacer(Modifier.height(8.dp))
+                                Text("📈 Progressi: ${nota.progressi}", style = MaterialTheme.typography.bodySmall, color = Teal700)
                             }
                         }
                     }
                 }
             }
-        }
 
-        item { Spacer(Modifier.height(100.dp)) }
+            item { Spacer(Modifier.height(100.dp)) }
+        }
     }
 }
 

@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mindbridge.app.data.model.*
@@ -136,9 +137,9 @@ fun PatientDashboard(
         val activeExercises = exercises.filter { it.stato != ExerciseStatus.COMPLETATO }
         if (activeExercises.isNotEmpty()) {
             item { SectionHeader("Esercizi da Completare") }
-            items(activeExercises) { exercise ->
+            items(items = activeExercises) { exercise ->
                 ExerciseCard(
-                    exercise,
+                    exercise = exercise,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
             }

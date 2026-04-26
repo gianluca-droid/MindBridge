@@ -57,6 +57,20 @@ object MockRepository {
         Appointment("a4", "c4", "u_terapeuta", "Seduta Familiare", listOf("p3", "p5", "p6"), LocalDateTime.now().plusDays(5).withHour(11).withMinute(0))
     )
 
+    val noteSessione = mutableListOf(
+        SessionNote("sn1", "c1", "u_terapeuta", LocalDateTime.now().minusDays(7), "Prima seduta conoscitiva.", "Approccio", "Buoni", "Approfondire", "Riflettere sulle emozioni"),
+        SessionNote("sn2", "c2", "u_terapeuta", LocalDateTime.now().minusDays(3), "Osservazione del gioco del minore.", "", "Stabile", "", "")
+    )
+
+    val moodEntries = mutableListOf(
+        MoodEntry("me1", "u_sofia", LocalDate.now().minusDays(1), 4, listOf("Calma"), "Mi sento bene"),
+        MoodEntry("me2", "u_sofia", LocalDate.now(), 5, listOf("Felicità"), "Giornata ottima")
+    )
+
+    val esercizi = mutableListOf(
+        Exercise("e1", "u_terapeuta", "u_sofia", "Respirazione Diaframmatica", "Esegui 5 minuti al mattino", "Segui il ritmo", ExerciseStatus.DA_FARE)
+    )
+
     // ── HELPER FUNCTIONS ──
     fun getCasesForTherapist(therapistId: String) = casi.filter { it.terapeutaId == therapistId }
     
@@ -97,4 +111,20 @@ object MockRepository {
     fun getPersonById(personId: String) = persone.find { it.id == personId }
     
     fun getConversationById(convId: String) = conversazioni.find { it.id == convId }
+
+    fun getUserByEmail(email: String) = utenti.find { it.email == email }
+
+    fun getNotesForCase(caseId: String) = noteSessione
+        .filter { it.caseId == caseId }
+        .sortedByDescending { it.dataSessione }
+
+    fun addNote(note: SessionNote) {
+        noteSessione.add(note)
+    }
+
+    fun getMoodByPaziente(pazienteId: String) = moodEntries.filter { it.pazienteId == pazienteId }
+    
+    fun getEserciziByPaziente(pazienteId: String) = esercizi.filter { it.pazienteId == pazienteId }
+
+    fun getPazientiByTerapeuta(terapeutaId: String) = utenti.filter { it.terapeutaId == terapeutaId }
 }

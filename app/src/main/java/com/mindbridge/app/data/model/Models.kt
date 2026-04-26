@@ -115,6 +115,18 @@ data class MoodEntry(
     val timestamp: LocalDateTime = LocalDateTime.now()
 )
 
+data class SessionNote(
+    val id: String = "",
+    val caseId: String = "",
+    val terapeutaId: String = "",
+    val dataSessione: LocalDateTime = LocalDateTime.now(),
+    val contenuto: String = "",
+    val obiettivi: String = "",
+    val progressi: String = "",
+    val prossimiPassi: String = "",
+    val compiti: String = ""
+)
+
 data class Exercise(
     val id: String = "",
     val terapeutaId: String = "",
