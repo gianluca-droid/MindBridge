@@ -25,7 +25,8 @@ import com.mindbridge.app.data.repository.MockRepository
 @Composable
 fun CasesScreen(
     therapistId: String,
-    onCaseClick: (String) -> Unit
+    onCaseClick: (String) -> Unit,
+    onNewCaseClick: () -> Unit
 ) {
     val cases = remember { MockRepository.getCasesForTherapist(therapistId) }
 
@@ -41,7 +42,7 @@ fun CasesScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* Nuovo Caso */ }) {
+            FloatingActionButton(onClick = onNewCaseClick) {
                 Icon(Icons.Default.Add, "Nuovo Caso")
             }
         }

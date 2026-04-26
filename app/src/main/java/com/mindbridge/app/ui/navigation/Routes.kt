@@ -11,6 +11,7 @@ sealed class Routes(val route: String) {
     
     // Nuove sezioni verticali
     object Cases : Routes("cases")
+    object CaseNew : Routes("case_new")
     object CaseDetail : Routes("case_detail/{caseId}") {
         fun createRoute(caseId: String) = "case_detail/$caseId"
     }

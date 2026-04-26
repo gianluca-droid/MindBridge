@@ -18,6 +18,7 @@ import com.mindbridge.app.ui.patient.ExercisesScreen
 import com.mindbridge.app.ui.therapist.TherapistDashboard
 import com.mindbridge.app.ui.cases.CasesScreen
 import com.mindbridge.app.ui.cases.CaseDetailScreen
+import com.mindbridge.app.ui.cases.NewCaseScreen
 import com.mindbridge.app.ui.appointments.AppointmentsScreen
 import com.mindbridge.app.ui.appointments.AppointmentForm
 
@@ -80,9 +81,22 @@ fun NavGraph(
         }
         
         composable(Routes.Cases.route) {
-            CasesScreen(currentUserId) { caseId ->
-                navController.navigate(Routes.CaseDetail.createRoute(caseId))
-            }
+            CasesScreen(
+                therapistId = currentUserId,
+                onCaseClick = { caseId -> navController.navigate(Routes.CaseDetail.createRoute(caseId)) },
+                onNewCaseClick = { navController.navigate(Routes.CaseNew.route) }
+            )
+        }
+
+        composable(Routes.CaseNew.route) {
+            NewCaseScreen(
+                therapistId = currentUserId,
+                onDismiss = { navController.popBackStack() },
+                onSave = { newCase ->
+                    MockRepository.casi.add(newCase)
+                    navController.popBackStack()
+                }
+            )
         }
         
         composable(
