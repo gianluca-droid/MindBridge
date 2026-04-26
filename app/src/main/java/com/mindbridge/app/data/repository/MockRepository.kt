@@ -4,112 +4,97 @@ import com.mindbridge.app.data.model.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-/**
- * Repository mock con dati di esempio in italiano.
- * Sarà sostituito da Firebase in futuro.
- */
 object MockRepository {
 
-    // ── Utenti ──
-    private val terapeuta = User(
-        id = "t1", nome = "Elena", cognome = "Rossi",
-        email = "elena.rossi@mindbridge.it",
-        ruolo = UserRole.TERAPEUTA,
-        numeroAlbo = "PSI-RM-12345",
-        bio = "Psicoterapeuta cognitivo-comportamentale con 15 anni di esperienza."
+    // ── PERSONE (Tutti i coinvolti) ──
+    val persone = mutableListOf(
+        Person("p1", "Sofia", "Rossi", "sofia.rossi@email.it", "3331234567", PersonRole.PAZIENTE),
+        Person("p2", "Matteo", "Rossi", "", "", PersonRole.PAZIENTE),
+        Person("p3", "Giulia", "Bianchi", "giulia.b@email.it", "3339876543", PersonRole.GENITORE),
+        Person("p4", "Marco", "Rossi", "marco.r@email.it", "3334455667", PersonRole.GENITORE),
+        Person("p5", "Marco", "Bianchi", "m.bianchi@email.it", "3331122334", PersonRole.PARTNER),
+        Person("p6", "Laura", "Verdi", "l.verdi@email.it", "3335566778", PersonRole.PARTNER),
+        Person("p7", "Elena", "Rossi", "elena.rossi@mindbridge.it", "06123456", PersonRole.CAREGIVER)
     )
 
-    private val paziente = User(
-        id = "p1", nome = "Sofia", cognome = "Conti",
-        email = "sofia.conti@email.it",
-        ruolo = UserRole.PAZIENTE,
-        terapeutaId = "t1"
+    // ── UTENTI (Chi accede all'app) ──
+    val utenti = mutableListOf(
+        User("u_terapeuta", "Elena", "Rossi", "elena.rossi@mindbridge.it", UserRole.TERAPEUTA, personId = "p7"),
+        User("u_sofia", "Sofia", "Rossi", "sofia.rossi@email.it", UserRole.PAZIENTE, personId = "p1", terapeutaId = "u_terapeuta"),
+        User("u_giulia", "Giulia", "Bianchi", "giulia.b@email.it", UserRole.GENITORE, personId = "p3", terapeutaId = "u_terapeuta"),
+        User("u_marco", "Marco", "Bianchi", "m.bianchi@email.it", UserRole.PAZIENTE, personId = "p5", terapeutaId = "u_terapeuta")
     )
 
-    val utenti = listOf(terapeuta, paziente,
-        User(id = "p2", nome = "Luca", cognome = "Moretti", email = "luca.m@email.it",
-            ruolo = UserRole.PAZIENTE, terapeutaId = "t1"),
-        User(id = "p3", nome = "Giulia", cognome = "Ferrara", email = "giulia.f@email.it",
-            ruolo = UserRole.PAZIENTE, terapeutaId = "t1")
+    // ── CASI TERAPEUTICI (CareCase) ──
+    val casi = mutableListOf(
+        CareCase("c1", "u_terapeuta", "Percorso Individuale - Sofia Rossi", CaseType.INDIVIDUALE, "p1", listOf("p1")),
+        CareCase("c2", "u_terapeuta", "Terapia Minore - Matteo Rossi", CaseType.MINORE, "p2", listOf("p2", "p3", "p4")),
+        CareCase("c3", "u_terapeuta", "Terapia di Coppia - Bianchi/Verdi", CaseType.COPPIA, "p5", listOf("p5", "p6")),
+        CareCase("c4", "u_terapeuta", "Sostegno Familiare - Famiglia Bianchi", CaseType.FAMIGLIA, "p5", listOf("p3", "p5", "p6"))
     )
 
-    // ── Umore ──
-    val moodEntries = mutableListOf(
-        MoodEntry("m1", "p1", LocalDate.now().minusDays(6), 2, listOf("😔","😰"), "Giornata difficile"),
-        MoodEntry("m2", "p1", LocalDate.now().minusDays(5), 3, listOf("😐"), "Nella norma"),
-        MoodEntry("m3", "p1", LocalDate.now().minusDays(4), 3, listOf("😐","🤔"), "Un po' pensierosa"),
-        MoodEntry("m4", "p1", LocalDate.now().minusDays(3), 4, listOf("😊"), "Buona passeggiata"),
-        MoodEntry("m5", "p1", LocalDate.now().minusDays(2), 4, listOf("😊","💪"), "Mi sento meglio"),
-        MoodEntry("m6", "p1", LocalDate.now().minusDays(1), 5, listOf("😄","🌟"), "Ottima giornata!"),
-        MoodEntry("m7", "p1", LocalDate.now(), 4, listOf("😊"), "Serena")
+    // ── CONVERSAZIONI ──
+    val conversazioni = mutableListOf(
+        Conversation("conv1", "c1", listOf("u_terapeuta", "u_sofia"), ConversationType.ONE_TO_ONE, "Chat con Sofia"),
+        Conversation("conv2", "c2", listOf("u_terapeuta", "u_giulia"), ConversationType.ONE_TO_ONE, "Mamma di Matteo (Giulia)"),
+        Conversation("conv3", "c2", listOf("u_terapeuta", "u_giulia", "u_marco_p"), ConversationType.CASE_GROUP, "Gruppo Genitori Matteo"),
+        Conversation("conv4", "c3", listOf("u_terapeuta", "u_marco", "u_laura_p"), ConversationType.COUPLE, "Coppia Bianchi/Verdi")
     )
 
-    // ── Appuntamenti ──
-    val appuntamenti = mutableListOf(
-        Appointment("a1", "p1", "t1",
-            LocalDateTime.now().plusDays(2).withHour(10).withMinute(0),
-            50, AppointmentStatus.CONFERMATO, nomePaziente = "Sofia Conti", nomeTerapeuta = "Dr.ssa Elena Rossi"),
-        Appointment("a2", "p2", "t1",
-            LocalDateTime.now().plusDays(1).withHour(14).withMinute(0),
-            50, AppointmentStatus.CONFERMATO, nomePaziente = "Luca Moretti", nomeTerapeuta = "Dr.ssa Elena Rossi"),
-        Appointment("a3", "p3", "t1",
-            LocalDateTime.now().withHour(16).withMinute(0),
-            50, AppointmentStatus.CONFERMATO, nomePaziente = "Giulia Ferrara", nomeTerapeuta = "Dr.ssa Elena Rossi"),
-        Appointment("a4", "p1", "t1",
-            LocalDateTime.now().minusDays(7).withHour(10).withMinute(0),
-            50, AppointmentStatus.COMPLETATO, nomePaziente = "Sofia Conti", nomeTerapeuta = "Dr.ssa Elena Rossi")
-    )
-
-    // ── Esercizi ──
-    val esercizi = mutableListOf(
-        Exercise("e1", "t1", "p1", "Respirazione Diaframmatica",
-            "Pratica la respirazione profonda per 10 minuti al giorno.",
-            "1. Siediti comodamente\n2. Inspira dal naso per 4 secondi\n3. Trattieni per 4 secondi\n4. Espira dalla bocca per 6 secondi\n5. Ripeti 10 volte",
-            ExerciseStatus.IN_CORSO, LocalDate.now().minusDays(3), LocalDate.now().plusDays(4)),
-        Exercise("e2", "t1", "p1", "Diario della Gratitudine",
-            "Scrivi 3 cose per cui sei grata ogni sera prima di dormire.",
-            "Ogni sera, prenditi 5 minuti per riflettere sulla giornata e annotare almeno 3 momenti positivi.",
-            ExerciseStatus.DA_FARE, LocalDate.now().minusDays(1), LocalDate.now().plusDays(6)),
-        Exercise("e3", "t1", "p1", "Camminata Consapevole",
-            "Fai una passeggiata di 20 minuti concentrandoti sulle sensazioni.",
-            "Cammina lentamente, nota i suoni, gli odori, le sensazioni sul corpo. Senza telefono.",
-            ExerciseStatus.COMPLETATO, LocalDate.now().minusDays(7), LocalDate.now().minusDays(1),
-            feedbackPaziente = "Mi ha fatto sentire molto più rilassata!")
-    )
-
-    // ── Note di sessione ──
-    val noteSessione = mutableListOf(
-        SessionNote("n1", "t1", "p1", LocalDate.now().minusDays(7),
-            "Sofia mostra progressi significativi nella gestione dell'ansia.",
-            "Ridurre episodi di ansia sociale",
-            "Buona capacità di applicare le tecniche di respirazione",
-            "Introdurre esposizione graduale a situazioni sociali")
-    )
-
-    // ── Chat ──
+    // ── MESSAGGI ──
     val messaggi = mutableListOf(
-        ChatMessage("c1", "p1", "t1", "Buongiorno dottoressa, volevo dirle che l'esercizio di respirazione sta funzionando!",
-            LocalDateTime.now().minusHours(5), true),
-        ChatMessage("c2", "t1", "p1", "Ottimo Sofia! Sono contenta dei tuoi progressi. Continua così 😊",
-            LocalDateTime.now().minusHours(4), true),
-        ChatMessage("c3", "p1", "t1", "Grazie! Ho anche iniziato il diario della gratitudine.",
-            LocalDateTime.now().minusHours(3), true),
-        ChatMessage("c4", "t1", "p1", "Perfetto. Ne parliamo alla prossima seduta. A presto!",
-            LocalDateTime.now().minusHours(2), false)
+        ChatMessage("m1", "conv1", "u_sofia", "Buongiorno, ho completato l'esercizio.", LocalDateTime.now().minusDays(1)),
+        ChatMessage("m2", "conv1", "u_terapeuta", "Ottimo Sofia, ne parliamo domani.", LocalDateTime.now().minusHours(5)),
+        ChatMessage("m3", "conv2", "u_giulia", "Dottoressa, Matteo oggi è molto agitato.", LocalDateTime.now().minusHours(2)),
+        ChatMessage("m4", "conv4", "u_marco", "Abbiamo avuto una discussione intensa oggi.", LocalDateTime.now().minusMinutes(30))
     )
 
-    // ── Helper functions ──
-    fun getUserByEmail(email: String) = utenti.find { it.email == email }
-    fun getPazientiByTerapeuta(terapeutaId: String) = utenti.filter {
-        it.ruolo == UserRole.PAZIENTE && it.terapeutaId == terapeutaId
+    // ── APPUNTAMENTI ──
+    val appuntamenti = mutableListOf(
+        Appointment("a1", "c1", "u_terapeuta", "Seduta Individuale", listOf("p1"), LocalDateTime.now().plusDays(1).withHour(10).withMinute(0)),
+        Appointment("a2", "c2", "u_terapeuta", "Incontro con Genitori", listOf("p3", "p4"), LocalDateTime.now().withHour(15).withMinute(0)),
+        Appointment("a3", "c3", "u_terapeuta", "Terapia di Coppia", listOf("p5", "p6"), LocalDateTime.now().plusDays(2).withHour(17).withMinute(30)),
+        Appointment("a4", "c4", "u_terapeuta", "Seduta Familiare", listOf("p3", "p5", "p6"), LocalDateTime.now().plusDays(5).withHour(11).withMinute(0))
+    )
+
+    // ── HELPER FUNCTIONS ──
+    fun getCasesForTherapist(therapistId: String) = casi.filter { it.terapeutaId == therapistId }
+    
+    fun getCaseById(caseId: String) = casi.find { it.id == caseId }
+    
+    fun getPersonsForCase(caseId: String): List<Person> {
+        val case = getCaseById(caseId) ?: return emptyList()
+        return persone.filter { it.id in case.participantIds }
     }
-    fun getMoodByPaziente(pazienteId: String) = moodEntries.filter { it.pazienteId == pazienteId }
-    fun getAppuntamentiByUser(userId: String) = appuntamenti.filter {
-        it.pazienteId == userId || it.terapeutaId == userId
+    
+    fun getConversationsForCase(caseId: String) = conversazioni.filter { it.caseId == caseId }
+    
+    fun getMessagesForConversation(conversationId: String) = messaggi
+        .filter { it.conversationId == conversationId }
+        .sortedBy { it.timestamp }
+    
+    fun addMessage(message: ChatMessage) {
+        messaggi.add(message)
     }
-    fun getEserciziByPaziente(pazienteId: String) = esercizi.filter { it.pazienteId == pazienteId }
-    fun getMessaggi(userId1: String, userId2: String) = messaggi.filter {
-        (it.senderId == userId1 && it.receiverId == userId2) ||
-        (it.senderId == userId2 && it.receiverId == userId1)
-    }.sortedBy { it.timestamp }
+    
+    fun getAppointmentsForTherapist(therapistId: String) = appuntamenti
+        .filter { it.terapeutaId == therapistId }
+        .sortedBy { it.dataOra }
+    
+    fun getAppointmentsForCase(caseId: String) = appuntamenti
+        .filter { it.caseId == caseId }
+        .sortedBy { it.dataOra }
+        
+    fun addAppointment(appointment: Appointment) {
+        appuntamenti.add(appointment)
+    }
+
+    fun updateAppointment(appointment: Appointment) {
+        val index = appuntamenti.indexOfFirst { it.id == appointment.id }
+        if (index != -1) appuntamenti[index] = appointment
+    }
+    
+    fun getPersonById(personId: String) = persone.find { it.id == personId }
+    
+    fun getConversationById(convId: String) = conversazioni.find { it.id == convId }
 }

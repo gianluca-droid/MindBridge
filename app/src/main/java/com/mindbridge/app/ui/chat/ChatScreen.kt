@@ -8,6 +8,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,9 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.mindbridge.app.data.model.ChatMessage
+import com.mindbridge.app.data.model.ConversationType
 import com.mindbridge.app.data.repository.MockRepository
 import com.mindbridge.app.ui.theme.Teal600
-import com.mindbridge.app.ui.theme.Teal200
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -28,22 +31,18 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ChatScreen(
     currentUserId: String,
-    recipientId: String
+    conversationId: String
 ) {
-    // Recupero informazioni destinatario per l'header
-    val recipient = remember(recipientId) { MockRepository.utenti.find { it.id == recipientId } }
-    
+    val conversation = remember(conversationId) { MockRepository.getConversationById(conversationId) }
     val messages = remember { mutableStateListOf<ChatMessage>() }
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
-    // Caricamento messaggi iniziali
-    LaunchedEffect(currentUserId, recipientId) {
+    LaunchedEffect(conversationId) {
         messages.clear()
-        messages.addAll(MockRepository.getMessaggi(currentUserId, recipientId))
+        messages.addAll(MockRepository.getMessagesForConversation(conversationId))
     }
 
-    // Scroll automatico all'ultimo messaggio
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.lastIndex)
@@ -55,16 +54,15 @@ fun ChatScreen(
         if (text.isBlank()) return
 
         val newMessage = ChatMessage(
-            id = "c${System.currentTimeMillis()}",
+            id = "m${System.currentTimeMillis()}",
+            conversationId = conversationId,
             senderId = currentUserId,
-            receiverId = recipientId,
             contenuto = text,
             timestamp = LocalDateTime.now()
         )
 
-        // Aggiorno sia la UI che il Repository (Persistenza)
         messages.add(newMessage)
-        MockRepository.messaggi.add(newMessage)
+        MockRepository.addMessage(newMessage)
         inputText = ""
     }
 
@@ -73,41 +71,35 @@ fun ChatScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Avatar circolare con iniziali
+                        val icon = if (conversation?.type == ConversationType.ONE_TO_ONE) 
+                            Icons.Default.Person else Icons.Default.Group
+                        
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(40.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = recipient?.let { "${it.nome.first()}${it.cognome.first()}" } ?: "?",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            Icon(icon, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                         
                         Spacer(Modifier.width(12.dp))
                         
                         Column {
                             Text(
-                                text = recipient?.let { "${it.nome} ${it.cognome}" } ?: "Chat",
+                                text = conversation?.title ?: "Chat",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Online",
+                                text = "${conversation?.participantIds?.size ?: 0} partecipanti",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Teal600
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                }
             )
         },
         bottomBar = {
@@ -115,25 +107,17 @@ fun ChatScreen(
                 inputText = inputText,
                 onInputChange = { inputText = it },
                 onSendClick = { sendMessage() },
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .imePadding()
+                modifier = Modifier.navigationBarsPadding().imePadding()
             )
         }
     ) { innerPadding ->
         LazyColumn(
             state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background),
+            modifier = Modifier.fillMaxSize().padding(innerPadding).background(MaterialTheme.colorScheme.background),
             contentPadding = PaddingValues(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(
-                items = messages,
-                key = { it.id }
-            ) { message ->
+            items(items = messages, key = { it.id }) { message ->
                 MessageBubble(
                     message = message,
                     isMine = message.senderId == currentUserId
@@ -144,13 +128,9 @@ fun ChatScreen(
 }
 
 @Composable
-private fun MessageBubble(
-    message: ChatMessage,
-    isMine: Boolean
-) {
-    val timeFormatter = remember {
-        DateTimeFormatter.ofPattern("HH:mm")
-    }
+private fun MessageBubble(message: ChatMessage, isMine: Boolean) {
+    val timeFormatter = remember { DateTimeFormatter.ofPattern("HH:mm") }
+    val sender = remember(message.senderId) { MockRepository.utenti.find { it.id == message.senderId } }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -159,29 +139,31 @@ private fun MessageBubble(
         Surface(
             modifier = Modifier.widthIn(max = 280.dp),
             shape = RoundedCornerShape(
-                topStart = 16.dp,
-                topEnd = 16.dp,
+                topStart = 16.dp, topEnd = 16.dp,
                 bottomStart = if (isMine) 16.dp else 2.dp,
                 bottomEnd = if (isMine) 2.dp else 16.dp
             ),
-            color = if (isMine) Teal600 else MaterialTheme.colorScheme.surfaceVariant,
-            tonalElevation = 2.dp
+            color = if (isMine) Teal600 else MaterialTheme.colorScheme.surfaceVariant
         ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                if (!isMine) {
+                    Text(
+                        text = sender?.nome ?: "Utente",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.height(2.dp))
+                }
                 Text(
                     text = message.contenuto,
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (isMine) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
                     text = message.timestamp.format(timeFormatter),
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (isMine) Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    color = if (isMine) Color.White.copy(0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f),
                     modifier = Modifier.align(Alignment.End)
                 )
             }
@@ -196,37 +178,20 @@ private fun ChatInputBar(
     onSendClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        tonalElevation = 8.dp,
-        shadowElevation = 8.dp
-    ) {
+    Surface(modifier = modifier.fillMaxWidth(), tonalElevation = 8.dp) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             OutlinedTextField(
-                value = inputText,
-                onValueChange = onInputChange,
+                value = inputText, onValueChange = onInputChange,
                 modifier = Modifier.weight(1f),
                 placeholder = { Text("Scrivi un messaggio...") },
-                maxLines = 4,
                 shape = RoundedCornerShape(24.dp),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Send
-                )
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send)
             )
-
-            Button(
-                onClick = onSendClick,
-                enabled = inputText.isNotBlank(),
-                shape = CircleShape,
-                modifier = Modifier.size(50.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
+            Button(onClick = onSendClick, enabled = inputText.isNotBlank(), shape = CircleShape) {
                 Text("Invia")
             }
         }

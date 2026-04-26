@@ -4,19 +4,24 @@ package com.mindbridge.app.ui.navigation
 sealed class Routes(val route: String) {
     object Login : Routes("login")
     object Register : Routes("register")
-    object PatientDashboard : Routes("patient/dashboard")
-    object MoodDiary : Routes("patient/mood")
-    object Exercises : Routes("patient/exercises")
-    object BookAppointment : Routes("patient/appointments")
-    object TherapistDashboard : Routes("therapist/dashboard")
-    object PatientList : Routes("therapist/patients")
-    object SessionNotes : Routes("therapist/notes/{patientId}") {
-        fun create(patientId: String) = "therapist/notes/$patientId"
+    
+    // Dashboard principale per ruolo
+    object PatientDashboard : Routes("patient_dashboard")
+    object TherapistDashboard : Routes("therapist_dashboard")
+    
+    // Nuove sezioni verticali
+    object Cases : Routes("cases")
+    object CaseDetail : Routes("case_detail/{caseId}") {
+        fun createRoute(caseId: String) = "case_detail/$caseId"
     }
-    object AssignExercise : Routes("therapist/assign/{patientId}") {
-        fun create(patientId: String) = "therapist/assign/$patientId"
+    
+    object Appointments : Routes("appointments")
+    object AppointmentNew : Routes("appointment_new?caseId={caseId}") {
+        fun createRoute(caseId: String? = null) = if (caseId != null) "appointment_new?caseId=$caseId" else "appointment_new"
     }
-    object Chat : Routes("chat/{recipientId}") {
-        fun create(recipientId: String) = "chat/$recipientId"
+    
+    // Chat aggiornata
+    object Chat : Routes("chat/{conversationId}") {
+        fun createRoute(convId: String) = "chat/$convId"
     }
 }
