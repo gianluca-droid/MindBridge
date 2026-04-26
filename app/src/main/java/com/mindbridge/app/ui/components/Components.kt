@@ -100,6 +100,7 @@ fun AppointmentCard(
         AppointmentStatus.RICHIESTA_MODIFICA -> Warning
         AppointmentStatus.ANNULLATO -> Error
         AppointmentStatus.COMPLETATO -> Warm400
+        else -> Color.Gray
     }
 
     Card(
@@ -174,11 +175,13 @@ fun ExerciseCard(
         ExerciseStatus.DA_FARE -> Icons.Outlined.RadioButtonUnchecked
         ExerciseStatus.IN_CORSO -> Icons.Filled.Pending
         ExerciseStatus.COMPLETATO -> Icons.Filled.CheckCircle
+        else -> Icons.Outlined.Info
     }
     val statusColor = when (exercise.stato) {
         ExerciseStatus.DA_FARE -> Warm400
         ExerciseStatus.IN_CORSO -> Warning
         ExerciseStatus.COMPLETATO -> Success
+        else -> Color.Gray
     }
 
     Card(

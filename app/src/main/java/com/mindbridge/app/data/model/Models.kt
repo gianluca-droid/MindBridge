@@ -41,6 +41,12 @@ enum class AppointmentStatus {
     COMPLETATO
 }
 
+enum class ExerciseStatus {
+    DA_FARE,
+    IN_CORSO,
+    COMPLETATO
+}
+
 data class User(
     val id: String = "",
     val nome: String = "",
@@ -116,7 +122,7 @@ data class Exercise(
     val titolo: String = "",
     val descrizione: String = "",
     val istruzioni: String = "",
-    val stato: String = "DA_FARE",
+    val stato: ExerciseStatus = ExerciseStatus.DA_FARE,
     val dataAssegnazione: LocalDate = LocalDate.now(),
     val dataScadenza: LocalDate? = null,
     val feedbackPaziente: String? = null
