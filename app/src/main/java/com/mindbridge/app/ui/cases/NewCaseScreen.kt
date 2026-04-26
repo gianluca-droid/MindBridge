@@ -106,7 +106,7 @@ fun NewCaseScreen(
                         terapeutaId = therapistId,
                         titolo = titolo.ifBlank { "Percorso $nomePaziente $cognomePaziente" },
                         tipo = tipo,
-                        primaryParticipantId = personId,
+                        mainPatientId = personId,
                         participantIds = listOf(personId)
                     )
                     onSave(newCase)
