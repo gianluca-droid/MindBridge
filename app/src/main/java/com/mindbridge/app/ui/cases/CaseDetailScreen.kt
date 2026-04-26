@@ -31,12 +31,13 @@ fun CaseDetailScreen(
     onNewAppointmentClick: (String) -> Unit
 ) {
     val careCase = remember(caseId) { MockRepository.getCaseById(caseId) }
-    val participants = remember(caseId) { MockRepository.getPersonsForCase(caseId) }
-    val conversations = remember(caseId) { MockRepository.getConversationsForCase(caseId) }
-    val appointments = remember(caseId) { MockRepository.getAppointmentsForCase(caseId) }
+    val participants = MockRepository.getPersonsForCase(caseId)
+    val conversations = MockRepository.getConversationsForCase(caseId)
+    val appointments = MockRepository.getAppointmentsForCase(caseId)
     
     var selectedPersonForEdit by remember { mutableStateOf<Person?>(null) }
     var showNewChatDialog by remember { mutableStateOf(false) }
+    var showNewParticipantDialog by remember { mutableStateOf(false) }
 
     if (careCase == null) return
 
@@ -75,7 +76,18 @@ fun CaseDetailScreen(
 
             // Partecipanti
             item {
-                Text("Anagrafiche Partecipanti", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Anagrafiche Partecipanti", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    TextButton(onClick = { showNewParticipantDialog = true }) {
+                        Icon(Icons.Default.PersonAdd, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Aggiungi")
+                    }
+                }
             }
             items(participants) { person ->
                 ParticipantItem(person, onClick = { selectedPersonForEdit = person })
@@ -140,10 +152,28 @@ fun CaseDetailScreen(
             person = person,
             onDismiss = { selectedPersonForEdit = null },
             onSave = { updated ->
-                // Mock update logic
                 val index = MockRepository.persone.indexOfFirst { it.id == updated.id }
                 if (index != -1) MockRepository.persone[index] = updated
                 selectedPersonForEdit = null
+            }
+        )
+    }
+
+    // Dialog Nuovo Partecipante
+    if (showNewParticipantDialog) {
+        NewPersonDialog(
+            onDismiss = { showNewParticipantDialog = false },
+            onSave = { newPerson ->
+                MockRepository.persone.add(newPerson)
+                // Aggiungi ID partecipante al caso
+                val caseIndex = MockRepository.casi.indexOfFirst { it.id == caseId }
+                if (caseIndex != -1) {
+                    val currentCase = MockRepository.casi[caseIndex]
+                    MockRepository.casi[caseIndex] = currentCase.copy(
+                        participantIds = currentCase.participantIds + newPerson.id
+                    )
+                }
+                showNewParticipantDialog = false
             }
         )
     }
@@ -170,20 +200,63 @@ fun CaseDetailScreen(
 
 @Composable
 fun PersonEditDialog(person: Person, onDismiss: () -> Unit, onSave: (Person) -> Unit) {
+    var nome by remember { mutableStateOf(person.nome) }
+    var cognome by remember { mutableStateOf(person.cognome) }
     var telefono by remember { mutableStateOf(person.telefono) }
     var email by remember { mutableStateOf(person.email) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Anagrafica: ${person.nome}") },
+        title = { Text("Anagrafica Partecipante") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(value = nome, onValueChange = { nome = it }, label = { Text("Nome") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = cognome, onValueChange = { cognome = it }, label = { Text("Cognome") }, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(value = telefono, onValueChange = { telefono = it }, label = { Text("Telefono") }, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth())
             }
         },
         confirmButton = {
-            Button(onClick = { onSave(person.copy(telefono = telefono, email = email)) }) { Text("Salva") }
+            Button(onClick = { onSave(person.copy(nome = nome, cognome = cognome, telefono = telefono, email = email)) }) { Text("Salva") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Annulla") }
+        }
+    )
+}
+
+@Composable
+fun NewPersonDialog(onDismiss: () -> Unit, onSave: (Person) -> Unit) {
+    var nome by remember { mutableStateOf("") }
+    var cognome by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
+    var ruolo by remember { mutableStateOf(PersonRole.FAMILIARE) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Nuova Anagrafica") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(value = nome, onValueChange = { nome = it }, label = { Text("Nome") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = cognome, onValueChange = { cognome = it }, label = { Text("Cognome") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = telefono, onValueChange = { telefono = it }, label = { Text("Telefono") }, modifier = Modifier.fillMaxWidth())
+                
+                Text("Ruolo nel caso", style = MaterialTheme.typography.labelSmall)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    listOf(PersonRole.GENITORE, PersonRole.PARTNER, PersonRole.FAMILIARE).forEach { r ->
+                        FilterChip(
+                            selected = ruolo == r,
+                            onClick = { ruolo = r },
+                            label = { Text(r.name, style = MaterialTheme.typography.labelSmall) }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { 
+                onSave(Person(id = "p_${System.currentTimeMillis()}", nome = nome, cognome = cognome, telefono = telefono, role = ruolo)) 
+            }, enabled = nome.isNotBlank() && cognome.isNotBlank()) { Text("Aggiungi") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Annulla") }
