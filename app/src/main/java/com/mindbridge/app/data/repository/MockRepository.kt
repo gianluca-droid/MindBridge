@@ -1,13 +1,14 @@
 package com.mindbridge.app.data.repository
 
 import com.mindbridge.app.data.model.*
+import androidx.compose.runtime.mutableStateListOf
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 object MockRepository {
 
     // ── PERSONE (Tutti i coinvolti) ──
-    val persone = mutableListOf(
+    val persone = mutableStateListOf(
         Person("p1", "Sofia", "Rossi", "sofia.rossi@email.it", "3331234567", PersonRole.PAZIENTE),
         Person("p2", "Matteo", "Rossi", "", "", PersonRole.PAZIENTE),
         Person("p3", "Giulia", "Bianchi", "giulia.b@email.it", "3339876543", PersonRole.GENITORE),
@@ -18,7 +19,7 @@ object MockRepository {
     )
 
     // ── UTENTI (Chi accede all'app) ──
-    val utenti = mutableListOf(
+    val utenti = mutableStateListOf(
         User("u_terapeuta", "Elena", "Rossi", "elena.rossi@mindbridge.it", UserRole.TERAPEUTA, personId = "p7"),
         User("u_sofia", "Sofia", "Rossi", "sofia.rossi@email.it", UserRole.PAZIENTE, personId = "p1", terapeutaId = "u_terapeuta"),
         User("u_giulia", "Giulia", "Bianchi", "giulia.b@email.it", UserRole.GENITORE, personId = "p3", terapeutaId = "u_terapeuta"),
@@ -26,7 +27,7 @@ object MockRepository {
     )
 
     // ── CASI TERAPEUTICI (CareCase) ──
-    val casi = mutableListOf(
+    val casi = mutableStateListOf(
         CareCase("c1", "u_terapeuta", "Percorso Individuale - Sofia Rossi", CaseType.INDIVIDUALE, "p1", listOf("p1")),
         CareCase("c2", "u_terapeuta", "Terapia Minore - Matteo Rossi", CaseType.MINORE, "p2", listOf("p2", "p3", "p4")),
         CareCase("c3", "u_terapeuta", "Terapia di Coppia - Bianchi/Verdi", CaseType.COPPIA, "p5", listOf("p5", "p6")),
@@ -34,7 +35,7 @@ object MockRepository {
     )
 
     // ── CONVERSAZIONI ──
-    val conversazioni = mutableListOf(
+    val conversazioni = mutableStateListOf(
         Conversation("conv1", "c1", listOf("u_terapeuta", "u_sofia"), ConversationType.ONE_TO_ONE, "Chat con Sofia"),
         Conversation("conv2", "c2", listOf("u_terapeuta", "u_giulia"), ConversationType.ONE_TO_ONE, "Mamma di Matteo (Giulia)"),
         Conversation("conv3", "c2", listOf("u_terapeuta", "u_giulia", "u_marco_p"), ConversationType.CASE_GROUP, "Gruppo Genitori Matteo"),
@@ -42,7 +43,7 @@ object MockRepository {
     )
 
     // ── MESSAGGI ──
-    val messaggi = mutableListOf(
+    val messaggi = mutableStateListOf(
         ChatMessage("m1", "conv1", "u_sofia", "Buongiorno, ho completato l'esercizio.", LocalDateTime.now().minusDays(1)),
         ChatMessage("m2", "conv1", "u_terapeuta", "Ottimo Sofia, ne parliamo domani.", LocalDateTime.now().minusHours(5)),
         ChatMessage("m3", "conv2", "u_giulia", "Dottoressa, Matteo oggi è molto agitato.", LocalDateTime.now().minusHours(2)),
@@ -50,24 +51,24 @@ object MockRepository {
     )
 
     // ── APPUNTAMENTI ──
-    val appuntamenti = mutableListOf(
+    val appuntamenti = mutableStateListOf(
         Appointment("a1", "c1", "u_terapeuta", "Seduta Individuale", listOf("p1"), LocalDateTime.now().plusDays(1).withHour(10).withMinute(0)),
         Appointment("a2", "c2", "u_terapeuta", "Incontro con Genitori", listOf("p3", "p4"), LocalDateTime.now().withHour(15).withMinute(0)),
         Appointment("a3", "c3", "u_terapeuta", "Terapia di Coppia", listOf("p5", "p6"), LocalDateTime.now().plusDays(2).withHour(17).withMinute(30)),
         Appointment("a4", "c4", "u_terapeuta", "Seduta Familiare", listOf("p3", "p5", "p6"), LocalDateTime.now().plusDays(5).withHour(11).withMinute(0))
     )
 
-    val noteSessione = mutableListOf(
+    val noteSessione = mutableStateListOf(
         SessionNote("sn1", "c1", "u_terapeuta", LocalDateTime.now().minusDays(7), "Prima seduta conoscitiva.", "Approccio", "Buoni", "Approfondire", "Riflettere sulle emozioni"),
         SessionNote("sn2", "c2", "u_terapeuta", LocalDateTime.now().minusDays(3), "Osservazione del gioco del minore.", "", "Stabile", "", "")
     )
 
-    val moodEntries = mutableListOf(
+    val moodEntries = mutableStateListOf(
         MoodEntry("me1", "u_sofia", LocalDate.now().minusDays(1), 4, listOf("Calma"), "Mi sento bene"),
         MoodEntry("me2", "u_sofia", LocalDate.now(), 5, listOf("Felicità"), "Giornata ottima")
     )
 
-    val esercizi = mutableListOf(
+    val esercizi = mutableStateListOf(
         Exercise("e1", "u_terapeuta", "u_sofia", "Respirazione Diaframmatica", "Esegui 5 minuti al mattino", "Segui il ritmo", ExerciseStatus.DA_FARE)
     )
 
