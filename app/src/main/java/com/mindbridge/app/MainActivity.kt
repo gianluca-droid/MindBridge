@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MindBridgeTheme {
-                MindBridgeApp()
+                MindBridgeContent()
             }
         }
     }
@@ -41,7 +41,7 @@ data class BottomNavItem(
 )
 
 @Composable
-fun MindBridgeApp() {
+fun MindBridgeContent() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
     val currentUser = authViewModel.state.currentUser
