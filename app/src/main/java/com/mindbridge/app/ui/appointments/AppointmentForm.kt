@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.window.Dialog
 import com.mindbridge.app.data.model.Appointment
 import com.mindbridge.app.data.model.AppointmentStatus
 import com.mindbridge.app.data.repository.MockRepository
