@@ -77,7 +77,24 @@ fun MindBridgeContent() {
                             selected = currentRoute == Routes.PatientDashboard.route,
                             onClick = { navController.navigate(Routes.PatientDashboard.route) }
                         )
-                        // Altri item per il paziente...
+                        NavigationBarItem(
+                            icon = { Icon(Icons.Default.Mood, "Umore") },
+                            label = { Text("Umore") },
+                            selected = currentRoute == Routes.MoodDiary.route,
+                            onClick = { navController.navigate(Routes.MoodDiary.route) }
+                        )
+                        NavigationBarItem(
+                            icon = { Icon(Icons.Default.FitnessCenter, "Esercizi") },
+                            label = { Text("Esercizi") },
+                            selected = currentRoute == Routes.Exercises.route,
+                            onClick = { navController.navigate(Routes.Exercises.route) }
+                        )
+                        NavigationBarItem(
+                            icon = { Icon(Icons.Default.CalendarMonth, "Prenota") },
+                            label = { Text("Prenota") },
+                            selected = currentRoute == Routes.Appointments.route,
+                            onClick = { navController.navigate(Routes.Appointments.route) }
+                        )
                     }
                 }
             }

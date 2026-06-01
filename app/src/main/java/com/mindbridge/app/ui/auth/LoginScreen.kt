@@ -207,7 +207,7 @@ fun LoginScreen(
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "Paziente: sofia.conti@email.it",
+                        "Paziente: sofia.rossi@email.it",
                         style = MaterialTheme.typography.bodySmall,
                         color = Teal200
                     )

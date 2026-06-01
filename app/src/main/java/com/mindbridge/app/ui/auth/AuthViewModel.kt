@@ -27,7 +27,7 @@ class AuthViewModel : ViewModel() {
             state = state.copy(isLoggedIn = true, currentUser = user, isLoading = false)
         } else {
             state = state.copy(
-                errorMessage = "Credenziali non valide. Prova: sofia.conti@email.it o elena.rossi@mindbridge.it",
+                errorMessage = "Credenziali non valide. Prova: sofia.rossi@email.it o elena.rossi@mindbridge.it",
                 isLoading = false
             )
         }
